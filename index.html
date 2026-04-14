@@ -199,25 +199,7 @@ footer{text-align:center;padding:20px;font-size:10px;color:var(--grey);letter-sp
   </div>
 </div>
 
-<!-- STAGE 3 -->
-<div class="stage-card s3" style="display:none" id="card-s3" onclick="irAStage(3)" style="border-left:3px solid transparent;">
-  <div class="stage-header">
-    <div>
-      <div class="stage-name" style="color:var(--yellow)">—</div>
-      <div class="stage-zone">Las Condes · RM</div>
-    </div>
-    <div class="stage-num" style="color:rgba(255,214,0,.12)">03</div>
-  </div>
-  <div class="stage-stats">
-    <div class="stat"><div class="stat-val">—</div><div class="stat-lbl">km</div></div>
-    <div class="stat"><div class="stat-val">1</div><div class="stat-lbl">Parcial</div></div>
-    <div class="stat"><div class="stat-val">↓</div><div class="stat-lbl">Bajada</div></div>
-  </div>
-  <div class="stage-cta">
-    <button class="stage-btn" id="btn-s3" style="background:var(--yellow);color:#000;">▶ INICIAR</button>
-    <span class="stage-status" id="status-s3">—</span>
-  </div>
-</div>
+
 
 <!-- CAMPEONATO -->
 <div class="camp-banner" id="camp-banner">
@@ -316,11 +298,6 @@ function actualizarUI() {
   }
 
   // Stage 3 status
-  const card3 = document.getElementById('card-s3');
-  const st3 = document.getElementById('status-s3');
-  const btn3 = document.getElementById('btn-s3');
-  // stage 3 removed
-  if (false) {
     card3.style.boxShadow = '0 0 0 1px rgba(255,214,0,.3)';
     card3.insertAdjacentHTML('afterbegin', '<div class="next-badge">▶ SIGUIENTE</div>');
   }
