@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Stage Crono Las Varas</title>
+<meta property="og:title" content="Stage Crono Las Varas">
+<meta property="og:description" content="Cronometraje GPS. Stage 1, Stage 2 y Stage 3. Campeonato online.">
+<meta property="og:image" content="./og-image.png">
+<meta property="og:image:width" content="1500">
+<meta property="og:image:height" content="843">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="./og-image.png">
+<meta name="theme-color" content="#080808">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="./assets/session.js"></script>
+<style>
+:root{--bg:#080808;--dark:#111;--dark2:#1a1a1a;--border:#1e1e1e;--green:#00ff41;--orange:#ff6b00;--yellow:#ffd600;--white:#e8e8e8;--grey:#444;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--white);font-family:'Barlow Condensed',sans-serif;min-height:100vh;}
+body{max-width:480px;margin:0 auto;padding:0 0 60px;}
+
+
+
+/* TRACKS CANVAS */
+#overview-section{padding:0 16px 20px;}
+.overview-label{font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:var(--grey);margin-bottom:10px;display:block;}
+.overview-desc{font-size:13px;font-weight:300;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:14px;}
+#tracks-canvas{width:100%;height:260px;display:block;border-radius:4px;background:#0a0a0a;min-height:260px;}
+
+/* HERO */
+#hero{padding:40px 24px 28px;position:relative;overflow:hidden;}
+canvas#bg-canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.2;pointer-events:none;}
+.hero-inner{position:relative;z-index:2;}
+.hero-kicker{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--green);margin-bottom:10px;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,17vw,92px);line-height:.85;margin-bottom:12px;}
+.hero-title span{color:var(--green);}
+.hero-sub{font-size:13px;font-weight:300;color:rgba(255,255,255,.4);line-height:1.7;max-width:300px;margin-bottom:28px;}
+
+/* NAME BLOCK */
+.name-block{margin-bottom:8px;}
+.name-label{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--green);margin-bottom:8px;display:block;}
+.name-row{display:flex;gap:0;}
+.name-input{flex:1;background:var(--dark2);border:1px solid rgba(0,255,65,.25);border-right:none;color:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;padding:12px 16px;outline:none;transition:border-color .2s;}
+.name-input:focus{border-color:rgba(0,255,65,.6);}
+.name-input::placeholder{color:var(--grey);font-weight:400;}
+.name-confirm{background:var(--green);color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.1em;padding:12px 20px;border:none;cursor:pointer;}
+.name-confirm:active{opacity:.8;}
+
+/* PILOT INFO (cuando ya tiene nombre) */
+.pilot-info{display:none;align-items:center;justify-content:space-between;background:rgba(0,255,65,.04);border:1px solid rgba(0,255,65,.15);border-radius:3px;padding:10px 14px;margin-bottom:8px;}
+.pilot-info.show{display:flex;}
+.pilot-name{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--green);letter-spacing:.06em;}
+.pilot-change{font-size:10px;color:var(--grey);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-bottom:1px solid var(--grey);padding-bottom:1px;}
+.pilot-change:hover{color:var(--white);}
+
+/* SECTION LABEL */
+.section-label{font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:var(--grey);padding:0 24px;margin-bottom:12px;}
+
+/* STAGE CARDS */
+.stage-card{margin:0 16px 10px;background:var(--dark);border:1px solid var(--border);border-radius:4px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s;position:relative;}
+.stage-card:active{transform:scale(.98);}
+.stage-card.s1{border-left:3px solid transparent;}
+.stage-card.s2{border-left:3px solid transparent;}
+.stage-card.s1.done{border-left-color:var(--green);border-color:rgba(0,255,65,.2);}
+.stage-card.s2.done{border-left-color:var(--orange);border-color:rgba(255,107,0,.2);}
+.stage-card.next-up{box-shadow:0 0 0 1px rgba(255,214,0,.3);}
+
+.stage-header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;}
+.stage-num{font-family:'Bebas Neue',sans-serif;font-size:44px;line-height:1;}
+.stage-card.s1 .stage-num{color:rgba(0,255,65,.12);}
+.stage-card.s2 .stage-num{color:rgba(255,107,0,.1);}
+.stage-card.done .stage-num{opacity:.6;}
+.stage-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.05em;}
+.stage-card.s1 .stage-name{color:var(--green);}
+.stage-card.s2 .stage-name{color:var(--orange);}
+.stage-zone{font-size:11px;color:var(--grey);letter-spacing:.06em;margin-top:2px;}
+
+.stage-stats{display:flex;gap:0;border-top:1px solid var(--border);}
+.stat{flex:1;padding:9px 12px;border-right:1px solid var(--border);text-align:center;}
+.stat:last-child{border-right:none;}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--white);}
+.stat-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-top:1px;}
+
+.stage-cta{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);}
+.stage-btn{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.12em;padding:9px 18px;border:none;cursor:pointer;border-radius:2px;}
+.stage-card.s1 .stage-btn{background:var(--green);color:#000;}
+.stage-card.s2 .stage-btn{background:var(--orange);color:#000;}
+.stage-card.done .stage-btn{background:transparent;border:1px solid var(--grey);color:var(--grey);font-size:13px;}
+.stage-status{font-size:11px;color:var(--grey);letter-spacing:.06em;}
+.stage-status.done{color:var(--green);}
+.stage-status.done-s2{color:var(--orange);}
+
+/* NEXT BADGE */
+.next-badge{position:absolute;top:10px;right:12px;font-size:8px;letter-spacing:.2em;text-transform:uppercase;background:rgba(255,214,0,.12);color:var(--yellow);border:1px solid rgba(255,214,0,.25);padding:3px 8px;border-radius:2px;}
+
+/* CAMPEONATO BANNER */
+.camp-banner{margin:6px 16px 18px;background:var(--dark);border:1px solid rgba(255,214,0,.2);border-radius:4px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.camp-icon{font-size:26px;flex-shrink:0;}
+.camp-info{flex:1;}
+.camp-title{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--yellow);letter-spacing:.06em;}
+.camp-sub{font-size:11px;color:var(--grey);margin-top:2px;line-height:1.5;}
+.camp-time{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--yellow);margin-top:2px;}
+.camp-btn{background:transparent;border:1px solid rgba(255,214,0,.4);color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.1em;padding:8px 12px;cursor:pointer;flex-shrink:0;border-radius:2px;}
+.camp-btn:active{background:rgba(255,214,0,.1);}
+
+/* RESULTS SHORTCUTS */
+.results-row{margin:0 16px 20px;display:flex;gap:8px;}
+.res-btn{flex:1;background:var(--dark2);border:1px solid var(--border);color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:10px 6px;cursor:pointer;text-align:center;border-radius:2px;text-decoration:none;display:block;transition:all .2s;}
+.res-btn:hover{border-color:var(--green);color:var(--green);}
+
+/* FOOTER */
+footer{text-align:center;padding:20px;font-size:10px;color:var(--grey);letter-spacing:.12em;border-top:1px solid var(--border);margin:0 16px;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--dark2);border:1px solid rgba(0,255,65,.4);border-radius:3px;padding:10px 20px;font-size:13px;letter-spacing:.1em;color:var(--green);transition:transform .3s;z-index:100;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="hero">
+  <canvas id="bg-canvas"></canvas>
+  <div class="hero-inner">
+    <div class="hero-kicker">Cronometraje GPS · Las Varas</div>
+    <h1 class="hero-title">STAGE<br><span>CRONO</span></h1>
+    <p class="hero-sub">Cronometraje automático por GPS. Pasa el inicio y el timer arranca solo.</p>
+
+    <!-- NOMBRE INPUT (se oculta si ya hay piloto) -->
+    <div class="name-block" id="name-block">
+      <label class="name-label" for="nombre-input">Tu nombre</label>
+      <div class="name-row">
+        <input class="name-input" id="nombre-input" type="text" placeholder="Escribe tu nombre..." maxlength="30" autocomplete="off" spellcheck="false">
+        <button class="name-confirm" onclick="guardarNombre()">OK</button>
+      </div>
+    </div>
+
+    <!-- PILOT INFO (se muestra si ya hay piloto) -->
+    <div class="pilot-info" id="pilot-info">
+      <div class="pilot-name" id="pilot-display">—</div>
+      <span class="pilot-change" onclick="cambiarNombre()">cambiar</span>
+    </div>
+  </div>
+</div>
+
+<div id="overview-section">
+  <span class="overview-label">El Campeonato</span>
+  <p class="overview-desc">2 especiales cronometradas en Las Varas. Compite contra el reloj, acumula los mejores tiempos y entra al ranking general.</p>
+  <canvas id="tracks-canvas" style="width:100%;height:260px;display:block;background:#0a0a0a;border-radius:4px;"></canvas>
+</div>
+
+
+<p class="section-label" id="stages-label">Elige tu stage</p>
+
+<!-- STAGE 1 -->
+<div class="stage-card s1" id="card-s1" onclick="irAStage(1)">
+  <div class="stage-header">
+    <div>
+      <div class="stage-name">ANFI NORTE</div>
+      <div class="stage-zone">Las Varas · RM</div>
+    </div>
+    <div class="stage-num">01</div>
+  </div>
+  <div class="stage-stats">
+    <div class="stat"><div class="stat-val">0.79</div><div class="stat-lbl">km</div></div>
+    <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Parciales</div></div>
+    <div class="stat"><div class="stat-val">↓</div><div class="stat-lbl">Bajada</div></div>
+  </div>
+  <div class="stage-cta">
+    <button class="stage-btn" id="btn-s1">▶ INICIAR</button>
+    <span class="stage-status" id="status-s1">—</span>
+  </div>
+</div>
+
+<!-- STAGE 2 -->
+<div class="stage-card s2" id="card-s2" onclick="irAStage(2)">
+  <div class="stage-header">
+    <div>
+      <div class="stage-name">ANFI CLÁSIC</div>
+      <div class="stage-zone">Las Varas · RM</div>
+    </div>
+    <div class="stage-num">02</div>
+  </div>
+  <div class="stage-stats">
+    <div class="stat"><div class="stat-val">1.10</div><div class="stat-lbl">km</div></div>
+    <div class="stat"><div class="stat-val">4</div><div class="stat-lbl">Parciales</div></div>
+    <div class="stat"><div class="stat-val">143m</div><div class="stat-lbl">Desnivel</div></div>
+  </div>
+  <div class="stage-cta">
+    <button class="stage-btn" id="btn-s2">▶ INICIAR</button>
+    <span class="stage-status" id="status-s2">—</span>
+  </div>
+</div>
+
+<!-- STAGE 3 -->
+<div class="stage-card s3" style="display:none" id="card-s3" onclick="irAStage(3)" style="border-left:3px solid transparent;">
+  <div class="stage-header">
+    <div>
+      <div class="stage-name" style="color:var(--yellow)">—</div>
+      <div class="stage-zone">Las Condes · RM</div>
+    </div>
+    <div class="stage-num" style="color:rgba(255,214,0,.12)">03</div>
+  </div>
+  <div class="stage-stats">
+    <div class="stat"><div class="stat-val">—</div><div class="stat-lbl">km</div></div>
+    <div class="stat"><div class="stat-val">1</div><div class="stat-lbl">Parcial</div></div>
+    <div class="stat"><div class="stat-val">↓</div><div class="stat-lbl">Bajada</div></div>
+  </div>
+  <div class="stage-cta">
+    <button class="stage-btn" id="btn-s3" style="background:var(--yellow);color:#000;">▶ INICIAR</button>
+    <span class="stage-status" id="status-s3">—</span>
+  </div>
+</div>
+
+<!-- CAMPEONATO -->
+<div class="camp-banner" id="camp-banner">
+  <div class="camp-icon">🏆</div>
+  <div class="camp-info">
+    <div class="camp-title">Ranking</div>
+    <div class="camp-sub" id="camp-sub">Completa los dos stages. Tu tiempo total entra al ranking.</div>
+    <div class="camp-time" id="camp-time" style="display:none"></div>
+  </div>
+  <button class="camp-btn" onclick="window.location.href='./resultados.html?tab=camp'">VER →</button>
+</div>
+
+<!-- LEADERBOARDS -->
+<div class="results-row">
+  <a class="res-btn" href="./resultados.html?tab=s1">📊 Stage 1</a>
+  <a class="res-btn" href="./resultados.html?tab=s2">📊 Stage 2</a>
+  <a class="res-btn" href="./resultados.html?tab=camp">🏆 Ranking</a>
+</div>
+
+<footer>STAGE CRONO LAS VARAS · 2026 · Gravitas Solutions</footer>
+<div id="toast"></div>
+
+<script>
+// ── ESTADO ──
+let nombre = GravitasSession.getPilot() || '';
+
+function fmt(ms) {
+  if (!ms) return null;
+  const s = Math.floor(ms / 1000), m = Math.floor(s / 60), ss = s % 60, t = Math.floor((ms % 1000) / 100);
+  return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}.${t}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── NOMBRE ──
+function guardarNombre() {
+  const v = document.getElementById('nombre-input').value.trim();
+  if (!v) return;
+  nombre = v;
+  GravitasSession.save(nombre);
+  showToast('✅ Nombre guardado');
+  actualizarUI();
+}
+document.getElementById('nombre-input').addEventListener('keydown', e => { if (e.key === 'Enter') guardarNombre(); });
+
+function cambiarNombre() {
+  document.getElementById('pilot-info').classList.remove('show');
+  document.getElementById('name-block').style.display = 'block';
+  document.getElementById('nombre-input').value = nombre;
+  document.getElementById('nombre-input').focus();
+}
+
+// ── IR A STAGE ──
+function irAStage(n) {
+  const nom = document.getElementById('nombre-input').value.trim() || nombre;
+  if (!nom) { document.getElementById('nombre-input').focus(); showToast('⚠️ Escribe tu nombre primero'); return; }
+  if (!nombre) { nombre = nom; GravitasSession.save(nombre); }
+  window.location.href = `./crono.html?seg=${n}`;
+}
+
+// ── ACTUALIZAR UI SEGÚN SESIÓN ──
+function actualizarUI() {
+  const t1 = GravitasSession.getTime(1);
+  const t2 = GravitasSession.getTime(2);
+
+  // Nombre
+  if (nombre) {
+    document.getElementById('name-block').style.display = 'none';
+    document.getElementById('pilot-info').classList.add('show');
+    document.getElementById('pilot-display').textContent = nombre.toUpperCase();
+    document.getElementById('stages-label').textContent = `Hola ${nombre.split(' ')[0]} — elige tu stage`;
+  }
+
+  // Stage 1 status
+  const card1 = document.getElementById('card-s1');
+  const st1 = document.getElementById('status-s1');
+  const btn1 = document.getElementById('btn-s1');
+  if (t1) {
+    card1.classList.add('done');
+    st1.textContent = `Mejor: ${fmt(t1.ms)}`; st1.className = 'stage-status done';
+    btn1.textContent = '🔁 MEJORAR';
+  }
+
+  // Stage 2 status
+  const card2 = document.getElementById('card-s2');
+  const st2 = document.getElementById('status-s2');
+  const btn2 = document.getElementById('btn-s2');
+  if (t2) {
+    card2.classList.add('done');
+    st2.textContent = `Mejor: ${fmt(t2.ms)}`; st2.className = 'stage-status done-s2';
+    btn2.textContent = '🔁 MEJORAR';
+  }
+
+  // Stage 3 status
+  const card3 = document.getElementById('card-s3');
+  const st3 = document.getElementById('status-s3');
+  const btn3 = document.getElementById('btn-s3');
+  // stage 3 removed
+  if (false) {
+    card3.style.boxShadow = '0 0 0 1px rgba(255,214,0,.3)';
+    card3.insertAdjacentHTML('afterbegin', '<div class="next-badge">▶ SIGUIENTE</div>');
+  }
+  const t3 = null;
+  if (t3) {
+    card3.style.borderLeftColor = 'var(--yellow)';
+    card3.style.borderColor = 'rgba(255,214,0,.2)';
+    st3.textContent = `Mejor: ${fmt(t3.ms)}`; st3.style.color = 'var(--yellow)';
+    btn3.textContent = '🔁 MEJORAR';
+  }
+
+  // Destacar siguiente stage pendiente
+  if (!t1) {
+    card1.classList.add('next-up');
+    card1.insertAdjacentHTML('afterbegin', '<div class="next-badge">▶ SIGUIENTE</div>');
+  } else if (!t2) {
+    card2.classList.add('next-up');
+    card2.insertAdjacentHTML('afterbegin', '<div class="next-badge">▶ SIGUIENTE</div>');
+  } else if (!t3) {
+    card3.style.boxShadow = '0 0 0 1px rgba(255,214,0,.3)';
+  }
+
+  // Campeonato — requiere S1+S2+S3
+  const total = GravitasSession.getTotal();
+  if (total) {
+    const t1b = GravitasSession.getTime(1);
+    const t2b = GravitasSession.getTime(2);
+    const t3b = null;
+    document.getElementById('camp-sub').textContent = `S1 ${fmt(t1b.ms)} · S2 ${fmt(t2b.ms)}`;
+    const campTime = document.getElementById('camp-time');
+    campTime.textContent = fmt(total); campTime.style.display = 'block';
+  }
+
+  // Fetch mejores remotos si hay nombre
+  if (nombre) fetchRemoteBests();
+}
+
+// ── FETCH SUPABASE BESTS ──
+async function fetchRemoteBests() {
+  if (!nombre) return;
+  const pin = GravitasSession.pin(nombre);
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/mejores_tiempos?nombre=eq.${encodeURIComponent(nombre)}&pin=eq.${pin}`, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    });
+    const data = await r.json();
+    data.forEach(d => {
+      const el = document.getElementById(`status-s${d.stage}`);
+      if (el && !el.classList.contains('done')) {
+        el.textContent = `Mejor: ${fmt(d.tiempo_ms)}`;
+        el.className = d.stage === 1 ? 'stage-status done' : 'stage-status done-s2';
+      }
+    });
+  } catch (e) {}
+}
+
+// ── INIT ──
+if (nombre) {
+  document.getElementById('nombre-input').value = nombre;
+}
+actualizarUI();
+
+
+
+// ── TRACKS ANIMADOS ──
+(function() {
+  const canvas = document.getElementById('tracks-canvas');
+  const dpr = window.devicePixelRatio || 1;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width  = rect.width  * dpr;
+    canvas.height = rect.height * dpr;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const TRACKS = {"1":[[-33.37239, -70.48191], [-33.37238, -70.48201], [-33.37235, -70.48211], [-33.37234, -70.48215], [-33.37235, -70.48222], [-33.37233, -70.48226], [-33.37232, -70.48233], [-33.37232, -70.48241], [-33.37232, -70.48249], [-33.37233, -70.48258], [-33.37237, -70.48266], [-33.37245, -70.48278], [-33.37247, -70.48287], [-33.37247, -70.4829], [-33.37246, -70.48296], [-33.37248, -70.483], [-33.37245, -70.48304], [-33.37246, -70.48311], [-33.37245, -70.48318], [-33.37244, -70.48324], [-33.37243, -70.48331], [-33.3724, -70.48335], [-33.37236, -70.48341], [-33.37232, -70.48348], [-33.37228, -70.48352], [-33.37223, -70.48356], [-33.37215, -70.4836], [-33.37214, -70.48367], [-33.37213, -70.48371], [-33.37213, -70.4838], [-33.37216, -70.48385], [-33.37216, -70.4839], [-33.37221, -70.48396], [-33.37224, -70.48399], [-33.37226, -70.48402], [-33.37227, -70.48403], [-33.37229, -70.48405], [-33.3723, -70.48412], [-33.37232, -70.48418], [-33.37233, -70.48422], [-33.37234, -70.48427], [-33.37236, -70.48431], [-33.37236, -70.48433], [-33.37235, -70.48443], [-33.37233, -70.48448], [-33.37231, -70.48452], [-33.37226, -70.48452], [-33.3722, -70.4846], [-33.37213, -70.48468], [-33.37207, -70.48472], [-33.37201, -70.48478], [-33.37199, -70.48481], [-33.372, -70.48484], [-33.37201, -70.48488], [-33.37199, -70.48494], [-33.37196, -70.485], [-33.37189, -70.48509], [-33.37184, -70.48516], [-33.37176, -70.4852], [-33.37168, -70.48525], [-33.37165, -70.48534], [-33.37168, -70.4854], [-33.37164, -70.48547], [-33.37168, -70.48562], [-33.37171, -70.48574], [-33.37171, -70.48588], [-33.37171, -70.48598], [-33.37173, -70.48603], [-33.37174, -70.48609], [-33.37173, -70.48617], [-33.37172, -70.48623], [-33.37172, -70.48629], [-33.37173, -70.48634], [-33.37172, -70.48644], [-33.37172, -70.48652], [-33.37173, -70.4866], [-33.37175, -70.48666], [-33.37175, -70.48671], [-33.37174, -70.48679], [-33.37173, -70.48687], [-33.37174, -70.48697], [-33.37175, -70.48706], [-33.37176, -70.48717], [-33.37175, -70.48721], [-33.37175, -70.48727], [-33.37172, -70.48731], [-33.37171, -70.48737], [-33.37171, -70.48743], [-33.37172, -70.48762], [-33.37172, -70.48772], [-33.37169, -70.48784], [-33.3717, -70.48794], [-33.37174, -70.48804], [-33.37173, -70.48811], [-33.37175, -70.48818], [-33.37179, -70.48828], [-33.37181, -70.48836], [-33.37185, -70.48845], [-33.37188, -70.48854], [-33.37189, -70.48862], [-33.37188, -70.48866], [-33.37192, -70.48875], [-33.37192, -70.48887], [-33.37192, -70.48893], [-33.37194, -70.48901], [-33.37194, -70.48909], [-33.37193, -70.48917], [-33.37193, -70.48927], [-33.37192, -70.48932], [-33.3719, -70.48947]],"2":[[-33.37483, -70.48304], [-33.37489, -70.48309], [-33.3749, -70.48311], [-33.37493, -70.48312], [-33.37495, -70.48313], [-33.37498, -70.48315], [-33.37501, -70.48318], [-33.37505, -70.48321], [-33.37508, -70.48321], [-33.37518, -70.48322], [-33.37529, -70.48322], [-33.37532, -70.48323], [-33.37535, -70.48325], [-33.37539, -70.48328], [-33.37543, -70.48329], [-33.37546, -70.48329], [-33.37552, -70.48336], [-33.37554, -70.48337], [-33.37557, -70.4834], [-33.37558, -70.48342], [-33.37561, -70.48345], [-33.37565, -70.4835], [-33.3757, -70.48354], [-33.37575, -70.48359], [-33.37581, -70.48368], [-33.37584, -70.48376], [-33.37588, -70.48382], [-33.3759, -70.4839], [-33.37594, -70.48398], [-33.37596, -70.48405], [-33.37597, -70.48409], [-33.37599, -70.48416], [-33.37603, -70.48429], [-33.37605, -70.48442], [-33.37606, -70.48447], [-33.37609, -70.48451], [-33.37612, -70.48454], [-33.37614, -70.48458], [-33.37618, -70.48465], [-33.37624, -70.48471], [-33.37629, -70.48475], [-33.37632, -70.4848], [-33.37634, -70.48484], [-33.37639, -70.48487], [-33.37644, -70.48491], [-33.37649, -70.48492], [-33.37661, -70.48491], [-33.3767, -70.4849], [-33.37678, -70.4849], [-33.37685, -70.48488], [-33.37691, -70.48486], [-33.37695, -70.48484], [-33.37703, -70.48481], [-33.37709, -70.48481], [-33.37713, -70.48481], [-33.37718, -70.4848], [-33.37723, -70.48481], [-33.37726, -70.48485], [-33.37731, -70.48485], [-33.37738, -70.48485], [-33.37747, -70.48485], [-33.37756, -70.48487], [-33.3776, -70.4849], [-33.37775, -70.48495], [-33.37783, -70.48498], [-33.37794, -70.48501], [-33.37801, -70.48504], [-33.37806, -70.48509], [-33.37811, -70.48514], [-33.37816, -70.48519], [-33.37821, -70.48523], [-33.37823, -70.48527], [-33.37823, -70.48531], [-33.37825, -70.48535], [-33.37831, -70.48542], [-33.37835, -70.48549], [-33.3784, -70.48561], [-33.37842, -70.48572], [-33.37845, -70.48582], [-33.37849, -70.48589], [-33.37857, -70.48596], [-33.3786, -70.48603], [-33.37862, -70.48608], [-33.37862, -70.48614], [-33.37862, -70.48619], [-33.37861, -70.48623], [-33.3786, -70.48625], [-33.37863, -70.4864], [-33.37865, -70.48644], [-33.37867, -70.48648], [-33.37867, -70.48652], [-33.37867, -70.48655], [-33.37866, -70.48659], [-33.37865, -70.48664], [-33.37862, -70.48668], [-33.37861, -70.48672], [-33.37857, -70.48675], [-33.37854, -70.48681], [-33.37854, -70.48685], [-33.37856, -70.4869], [-33.37859, -70.48692], [-33.37862, -70.48693], [-33.37865, -70.48695], [-33.37869, -70.48697], [-33.37871, -70.487], [-33.37874, -70.48703], [-33.37876, -70.48705], [-33.37882, -70.48711], [-33.37893, -70.48729], [-33.37898, -70.48736], [-33.379, -70.48741], [-33.37898, -70.48744], [-33.37895, -70.48745], [-33.37891, -70.48744], [-33.37887, -70.48746], [-33.37885, -70.4875], [-33.37883, -70.48753], [-33.37879, -70.48756], [-33.37875, -70.4876], [-33.37871, -70.48764], [-33.37868, -70.4877], [-33.37869, -70.48777], [-33.37867, -70.48785], [-33.37869, -70.48792], [-33.37868, -70.48798], [-33.37866, -70.48806], [-33.37864, -70.48814], [-33.37861, -70.48826], [-33.3786, -70.48834], [-33.37854, -70.48844], [-33.3785, -70.4885], [-33.37849, -70.4886], [-33.37849, -70.48865], [-33.37852, -70.48871], [-33.37853, -70.48876], [-33.37853, -70.48882], [-33.37855, -70.48889], [-33.37856, -70.48894], [-33.37859, -70.48903], [-33.37863, -70.48907], [-33.37864, -70.48909], [-33.37865, -70.48913], [-33.37865, -70.48921], [-33.37861, -70.48931], [-33.37858, -70.48944], [-33.37855, -70.48953], [-33.37855, -70.48959], [-33.37855, -70.48971], [-33.37853, -70.48977], [-33.37851, -70.48984], [-33.37846, -70.49], [-33.37842, -70.49012], [-33.37839, -70.49019], [-33.3784, -70.49029], [-33.37843, -70.49038], [-33.37843, -70.49046], [-33.37841, -70.49049], [-33.37842, -70.49058], [-33.3784, -70.49065], [-33.37839, -70.49069], [-33.37838, -70.49075], [-33.37837, -70.49081], [-33.37833, -70.4909], [-33.37828, -70.49099]]};
+  const WPS = {"1":[[-33.37238924, -70.48190971], [-33.37216577, -70.48357064], [-33.37165135, -70.48532536], [-33.3717239, -70.48660143], [-33.37190617, -70.48946498]],"2":[[-33.37483135, -70.48304194], [-33.37690176, -70.48486232], [-33.3786634, -70.48695368], [-33.37849032, -70.48860841], [-33.37828821, -70.49098226]]};
+  const BOUNDS = {"1": {"minLat": -33.367615, "maxLat": -33.335364999999996, "minLon": -70.48953, "maxLon": -70.46085000000001}, "2": {"minLat": -33.379778, "maxLat": -33.365396, "minLon": -70.49934475, "maxLon": -70.49104224999999}, "3": {"minLat": -33.379965, "maxLat": -33.373155000000004, "minLon": -70.5087425, "maxLon": -70.4930075}};
+  const COLORS = {'1':'#00ff41','2':'#ff6b00','3':'#ffd600'};
+  const NAMES = {'1':'ANFI NORTE','2':'ANFI CLÁSIC'};
+  const DISTS = {'1':'0.79 km','2':'1.10 km'};
+  const SEGS   = [1, 2, 3];
+
+  // Project a point using per-segment bounds
+  function project(lat, lon, seg) {
+    const b = BOUNDS[seg];
+    const W = canvas.width, H = canvas.height;
+    const pad = 0.1;
+    const x = pad*W + (lon - b.minLon) / (b.maxLon - b.minLon) * W*(1-pad*2);
+    const y = pad*H + (1 - (lat - b.minLat) / (b.maxLat - b.minLat)) * H*(1-pad*2);
+    return [x, y];
+  }
+
+  // Draw grid
+  function drawGrid(ctx, alpha) {
+    ctx.globalAlpha = 0.04 * alpha;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    for (let i=1; i<8; i++) {
+      ctx.beginPath(); ctx.moveTo(canvas.width*i/8, 0); ctx.lineTo(canvas.width*i/8, canvas.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, canvas.height*i/8); ctx.lineTo(canvas.width, canvas.height*i/8); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Draw full track (glow + line)
+  function drawTrack(ctx, seg, pts, alpha) {
+    if (pts.length < 2) return;
+    const col = COLORS[seg];
+    const path = () => {
+      ctx.beginPath();
+      pts.forEach(([la,lo],i) => {
+        const [x,y] = project(la,lo,seg);
+        i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+      });
+    };
+    // glow
+    path(); ctx.strokeStyle=col; ctx.lineWidth=14*dpr; ctx.globalAlpha=0.06*alpha; ctx.filter='blur(5px)'; ctx.stroke(); ctx.filter='none';
+    // line
+    path(); ctx.strokeStyle=col; ctx.lineWidth=2.5*dpr; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.globalAlpha=alpha; ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+
+  // Draw waypoint diamond
+  function drawWP(ctx, lat, lon, seg, isStart, isEnd, alpha) {
+    const [x,y] = project(lat, lon, seg);
+    const col = isStart ? '#00ff41' : isEnd ? '#ffd600' : COLORS[seg];
+    const s = (isStart||isEnd ? 8 : 5) * dpr;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(x,y-s); ctx.lineTo(x+s,y); ctx.lineTo(x,y+s); ctx.lineTo(x-s,y); ctx.closePath(); ctx.fill();
+    // ring on start/end
+    if (isStart || isEnd) {
+      ctx.beginPath(); ctx.arc(x,y,s*1.8,0,Math.PI*2);
+      ctx.strokeStyle=col; ctx.lineWidth=1*dpr; ctx.globalAlpha=alpha*0.35; ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  }
+
+  // Draw label overlay
+  function drawLabel(ctx, seg, alpha) {
+    const col = COLORS[seg];
+    const name = NAMES[seg];
+    const dist = DISTS[seg];
+    const W = canvas.width, H = canvas.height;
+    const fs = 13 * dpr;
+    const fs2 = 10 * dpr;
+
+    ctx.globalAlpha = alpha;
+    // Stage number badge top-left
+    ctx.fillStyle = col;
+    ctx.font = `900 ${fs*1.4}px 'Bebas Neue', sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`S${seg}`, 14*dpr, 14*dpr);
+
+    // Name
+    ctx.font = `700 ${fs}px 'Barlow Condensed', sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(name, 14*dpr + 34*dpr, 16*dpr);
+
+    // Distance
+    ctx.font = `400 ${fs2}px 'Barlow Condensed', sans-serif`;
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fillText(dist, 14*dpr + 34*dpr, 16*dpr + fs + 2*dpr);
+
+    ctx.globalAlpha = 1;
+  }
+
+  // Moving dot on track
+  function drawDot(ctx, seg, ptIdx, alpha) {
+    const pts = TRACKS[seg];
+    const i = Math.min(Math.floor(ptIdx), pts.length-1);
+    const [x,y] = project(pts[i][0], pts[i][1], seg);
+    const col = COLORS[seg];
+    // pulse
+    ctx.beginPath(); ctx.arc(x,y,12*dpr,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.globalAlpha=0.12*alpha; ctx.fill();
+    // dot
+    ctx.beginPath(); ctx.arc(x,y,4.5*dpr,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.globalAlpha=alpha; ctx.fill();
+    ctx.globalAlpha=1;
+  }
+
+  // ── STATE MACHINE ──
+  // phases: draw → show → fadeout → fadein(next)
+  let seg = 0;          // index into SEGS
+  let ptIdx = 0;
+  let phase = 'fadein';
+  let alpha = 0;        // master alpha for current stage
+  const SPEED = 2.5;
+  const SHOW_FRAMES = 90;
+  let showTimer = 0;
+
+  function draw() {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const s = SEGS[seg];
+
+    drawGrid(ctx, alpha);
+
+    if (phase === 'fadein') {
+      alpha = Math.min(1, alpha + 0.04);
+      // just show empty track faintly while fading in
+      drawTrack(ctx, s, TRACKS[s].slice(0,2), alpha*0.3);
+      drawLabel(ctx, s, alpha);
+      if (alpha >= 1) { phase = 'draw'; ptIdx = 0; }
+
+    } else if (phase === 'draw') {
+      const partial = TRACKS[s].slice(0, Math.floor(ptIdx)+1);
+      drawTrack(ctx, s, partial, 1);
+      drawDot(ctx, s, ptIdx, 1);
+      drawLabel(ctx, s, 1);
+      ptIdx += SPEED;
+      if (ptIdx >= TRACKS[s].length) { phase = 'show'; showTimer = 0; ptIdx = TRACKS[s].length-1; }
+
+    } else if (phase === 'show') {
+      drawTrack(ctx, s, TRACKS[s], 1);
+      // draw all waypoints
+      TRACKS[s].forEach((_,i) => {
+        const wp_lats = WPS[s].map(w=>w[0]);
+        const wp_lons = WPS[s].map(w=>w[1]);
+      });
+      WPS[s].forEach((w,i) => drawWP(ctx, w[0], w[1], s, i===0, i===WPS[s].length-1, 1));
+      drawLabel(ctx, s, 1);
+      showTimer++;
+      if (showTimer > SHOW_FRAMES) { phase = 'fadeout'; }
+
+    } else if (phase === 'fadeout') {
+      alpha = Math.max(0, alpha - 0.04);
+      drawTrack(ctx, s, TRACKS[s], alpha);
+      WPS[s].forEach((w,i) => drawWP(ctx, w[0], w[1], s, i===0, i===WPS[s].length-1, alpha));
+      drawLabel(ctx, s, alpha);
+      if (alpha <= 0) {
+        seg = (seg + 1) % SEGS.length;
+        phase = 'fadein';
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+})();
+
+
+// ── BG CANVAS ──
+(function () {
+  const c = document.getElementById('bg-canvas');
+  const W = () => { c.width = c.offsetWidth; c.height = c.offsetHeight; };
+  W(); window.addEventListener('resize', W);
+  const pts = [[0,.2],[.15,.35],[.3,.15],[.5,.45],[.65,.25],[.8,.5],[1,.3]];
+  let t = 0;
+  function draw() {
+    const ctx = c.getContext('2d'), w = c.width, h = c.height;
+    ctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.moveTo(0, h*.06+i*h*.12); ctx.lineTo(w, h*.06+i*h*.12); ctx.strokeStyle = `rgba(0,255,65,.015)`; ctx.lineWidth = 1; ctx.stroke(); }
+    ctx.beginPath();
+    pts.forEach(([x, y], i) => { const cx = x*w, cy = y*h+(Math.sin(t+i)*.015*h); i ? ctx.lineTo(cx,cy) : ctx.moveTo(cx,cy); });
+    ctx.strokeStyle = 'rgba(0,255,65,.35)'; ctx.lineWidth = 1.5; ctx.stroke();
+    t += .008; requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
