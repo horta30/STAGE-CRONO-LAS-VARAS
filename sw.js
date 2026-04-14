@@ -7,7 +7,6 @@ const ASSETS = [
   './assets/session.js',
   './assets/seg01.js',
   './assets/seg02.js',
-  './assets/seg03.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
