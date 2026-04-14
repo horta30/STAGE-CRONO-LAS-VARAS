@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Resultados — Stage Crono</title>
 <meta property="og:title" content="Resultados · Stage Crono">
-<meta property="og:description" content="Leaderboard oficial — Stage 1, Stage 2 y Campeonato Las Varas">
+<meta property="og:description" content="Leaderboard oficial — Stage 1, Stage 2 y Ranking Las Varas">
 <meta property="og:image" content="./og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="./og-image.png">
@@ -286,7 +286,7 @@ function filterBoard(){ renderBoard(); }
 
 // ── SHARE ──
 function shareLeaderboard(){
-  const tabNames={camp:'Campeonato',s1:'Anfiteatro Norte',s2:'Anfiteatro Clásic'};
+  const tabNames={camp:'Ranking',s1:'Anfiteatro Norte',s2:'Anfiteatro Clásic'};
   const url=`${window.location.origin}${window.location.pathname}?tab=${currentTab}`;
   const txt=`🏆 Leaderboard ${tabNames[currentTab]} — Crono System\n${url}`;
   if(navigator.share) navigator.share({title:`Crono System · ${tabNames[currentTab]}`,text:txt,url}).catch(()=>{});
