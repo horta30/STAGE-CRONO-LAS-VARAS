@@ -297,18 +297,6 @@ function actualizarUI() {
     btn2.textContent = '🔁 MEJORAR';
   }
 
-  // Stage 3 status
-    card3.style.boxShadow = '0 0 0 1px rgba(255,214,0,.3)';
-    card3.insertAdjacentHTML('afterbegin', '<div class="next-badge">▶ SIGUIENTE</div>');
-  }
-  const t3 = null;
-  if (t3) {
-    card3.style.borderLeftColor = 'var(--yellow)';
-    card3.style.borderColor = 'rgba(255,214,0,.2)';
-    st3.textContent = `Mejor: ${fmt(t3.ms)}`; st3.style.color = 'var(--yellow)';
-    btn3.textContent = '🔁 MEJORAR';
-  }
-
   // Destacar siguiente stage pendiente
   if (!t1) {
     card1.classList.add('next-up');
@@ -316,8 +304,6 @@ function actualizarUI() {
   } else if (!t2) {
     card2.classList.add('next-up');
     card2.insertAdjacentHTML('afterbegin', '<div class="next-badge">▶ SIGUIENTE</div>');
-  } else if (!t3) {
-    card3.style.boxShadow = '0 0 0 1px rgba(255,214,0,.3)';
   }
 
   // Ranking — requiere S1+S2
@@ -325,7 +311,6 @@ function actualizarUI() {
   if (total) {
     const t1b = GravitasSession.getTime(1);
     const t2b = GravitasSession.getTime(2);
-    const t3b = null;
     document.getElementById('camp-sub').textContent = `S1 ${fmt(t1b.ms)} · S2 ${fmt(t2b.ms)}`;
     const campTime = document.getElementById('camp-time');
     campTime.textContent = fmt(total); campTime.style.display = 'block';
