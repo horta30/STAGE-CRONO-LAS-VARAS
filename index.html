@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Stage Crono Las Varas</title>
 <meta property="og:title" content="Stage Crono Las Varas">
-<meta property="og:description" content="Cronometraje GPS. Stage 1, Stage 2 y Stage 3. Campeonato online.">
+<meta property="og:description" content="Cronometraje GPS. Stage 1 y Stage 2. Ranking online.">
 <meta property="og:image" content="./og-image.png">
 <meta property="og:image:width" content="1500">
 <meta property="og:image:height" content="843">
@@ -149,7 +149,7 @@ footer{text-align:center;padding:20px;font-size:10px;color:var(--grey);letter-sp
 </div>
 
 <div id="overview-section">
-  <span class="overview-label">El Campeonato</span>
+  <span class="overview-label">El Ranking</span>
   <p class="overview-desc">2 especiales cronometradas en Las Varas. Compite contra el reloj, acumula los mejores tiempos y entra al ranking general.</p>
   <canvas id="tracks-canvas" style="width:100%;height:260px;display:block;background:#0a0a0a;border-radius:4px;"></canvas>
 </div>
@@ -343,7 +343,7 @@ function actualizarUI() {
     card3.style.boxShadow = '0 0 0 1px rgba(255,214,0,.3)';
   }
 
-  // Campeonato — requiere S1+S2+S3
+  // Ranking — requiere S1+S2
   const total = GravitasSession.getTotal();
   if (total) {
     const t1b = GravitasSession.getTime(1);
