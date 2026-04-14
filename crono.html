@@ -785,24 +785,26 @@ function showResult(totalMs) {
   if (total) {
     const t1 = GravitasSession.getTime(1);
     const t2 = GravitasSession.getTime(2);
-    campBlock.innerHTML = `<div class="rs-camp-card"><div class="rs-camp-title">🏆 CAMPEONATO COMPLETO</div><div class="rs-camp-time">${fmt(total)}</div><div class="rs-camp-sub" style="margin-top:4px">S1 ${fmt(t1.ms)} + S2 ${fmt(t2.ms)}</div></div>`;
+    campBlock.innerHTML = `<div class="rs-camp-card"><div class="rs-camp-title">🏆 RANKING COMPLETO</div><div class="rs-camp-time">${fmt(total)}</div><div class="rs-camp-sub" style="margin-top:4px">S1 ${fmt(t1.ms)} + S2 ${fmt(t2.ms)}</div></div>`;
   }
 
-  // Botones de navegación post-especial
-  const MAX_SEGS = 3;
-  const nextSeg = CT.meta.stage + 1;
-  const hasNext = nextSeg <= MAX_SEGS;
+  // Botones de navegación post-especial — lógica inteligente por orden
+  const otherSeg = CT.meta.stage === 1 ? 2 : 1;
+  const hasOther = !!GravitasSession.getTime(otherSeg);
+  const nextLabel = hasOther ? '🏆 IR AL RANKING' : `➡️ STAGE ${otherSeg}`;
+  const nextAction = hasOther ? 'goLeaderboard()' : `goStage(${otherSeg})`;
+  const nextColor  = hasOther ? 'var(--yellow)' : 'var(--orange)';
   const actionsBlock = document.getElementById('rs-actions-block');
   actionsBlock.innerHTML = `
     <button class="rs-share" onclick="shareResult()">📤 COMPARTIR POR WHATSAPP</button>
     <div class="rs-actions">
       <button class="rs-btn rs-btn-retry" onclick="resetSession()">🔁 REINTENTAR</button>
-      <button class="rs-btn rs-btn-next" style="background:${hasNext ? 'var(--orange)' : 'var(--yellow)'}; color:#000;" onclick="${hasNext ? `goStage(${nextSeg})` : 'goHome()'}">
-        ${hasNext ? `➡️ STAGE ${nextSeg}` : '🏆 CAMPEONATO'}
+      <button class="rs-btn rs-btn-next" style="background:${nextColor}; color:#000;" onclick="${nextAction}">
+        ${nextLabel}
       </button>
     </div>
     <div class="rs-nav-row">
-      <button class="rs-nav-btn" onclick="goLeaderboard()">🏆 Leaderboard</button>
+      <button class="rs-nav-btn" onclick="goLeaderboard()">🏆 Ranking</button>
       <button class="rs-nav-btn" onclick="goHome()">🏠 Home</button>
     </div>`;
 
@@ -863,7 +865,7 @@ window.shareResult = function () {
   const total2 = GravitasSession.getTotal();
   if (total2) {
     const t1 = GravitasSession.getTime(1); const t2 = GravitasSession.getTime(2);
-    txt += `\n🏆 *Campeonato: ${fmt(total2)}*\n🟢 S1: ${fmt(t1.ms)} · 🟠 S2: ${fmt(t2.ms)}\n`;
+    txt += `\n🏆 *Ranking: ${fmt(total2)}*\n🟢 S1: ${fmt(t1.ms)} · 🟠 S2: ${fmt(t2.ms)}\n`;
   }
   txt += `\n_Stage Crono · Gravitas Solutions_`;
   if (navigator.share) navigator.share({ title: `Stage Crono S${CT.meta.stage}`, text: txt }).catch(() => {});
