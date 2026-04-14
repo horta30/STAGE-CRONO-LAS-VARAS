@@ -37,8 +37,8 @@ const GravitasSession = {
 
   getTotal() {
     const t = this.getTimes();
-    if (!t.s1 || !t.s2 || !t.s3) return null;
-    return t.s1.ms + t.s2.ms + t.s3.ms;
+    if (!t.s1 || !t.s2) return null;
+    return t.s1.ms + t.s2.ms;
   },
 
   pin(nombre) {
