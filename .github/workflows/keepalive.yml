@@ -1,0 +1,24 @@
+name: Keep Supabase Awake
+
+on:
+  schedule:
+    # Diario a las 07:17 UTC (~04:17 Chile). Hora arbitraria para evitar el filo de minuto 0.
+    - cron: '17 7 * * *'
+  workflow_dispatch:  # también permite correrlo manualmente desde la pestaña Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        run: |
+          STATUS=$(curl -s -o /tmp/body -w "%{http_code}" \
+            "https://sgmzacwxfuznolthyjff.supabase.co/rest/v1/resultados?select=evento&limit=1" \
+            -H "apikey: sb_publishable_-wDAA3WMgcrJSGA9B4Gciw_wOuM27pw" \
+            -H "Authorization: Bearer sb_publishable_-wDAA3WMgcrJSGA9B4Gciw_wOuM27pw")
+          echo "HTTP $STATUS"
+          cat /tmp/body
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Supabase ping falló con HTTP $STATUS"
+            exit 1
+          fi
