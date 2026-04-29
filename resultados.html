@@ -155,33 +155,41 @@ function fmtDate(iso){
 
 // ── FETCH ──
 async function fetchData(){
-  try{
-    // Campeonato
-    const rCamp = await fetch(`${SUPA_URL}/rest/v1/campeonato?evento=eq.${EVENTO}&order=tiempo_total.asc`,{
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
-    });
-    allData.camp = await rCamp.json();
+  const headers = {'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`};
+  const queries = [
+    {key:'camp', url:`${SUPA_URL}/rest/v1/campeonato?evento=eq.${EVENTO}&order=tiempo_total.asc`},
+    {key:'s1',   url:`${SUPA_URL}/rest/v1/mejores_tiempos?evento=eq.${EVENTO}&stage=eq.1&order=tiempo_ms.asc`},
+    {key:'s2',   url:`${SUPA_URL}/rest/v1/mejores_tiempos?evento=eq.${EVENTO}&stage=eq.2&order=tiempo_ms.asc`},
+  ];
 
-    // Stage 1
-    const rS1 = await fetch(`${SUPA_URL}/rest/v1/mejores_tiempos?evento=eq.${EVENTO}&stage=eq.1&order=tiempo_ms.asc`,{
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
-    });
-    allData.s1 = await rS1.json();
+  const results = await Promise.allSettled(
+    queries.map(q => fetch(q.url, {headers}).then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)))
+  );
 
-    // Stage 2
-    const rS2 = await fetch(`${SUPA_URL}/rest/v1/mejores_tiempos?evento=eq.${EVENTO}&stage=eq.2&order=tiempo_ms.asc`,{
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
-    });
-    allData.s2 = await rS2.json();
+  const failed = [];
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      allData[queries[i].key] = r.value;
+    } else {
+      failed.push(queries[i].key);
+      // mantenemos los datos anteriores si los había
+    }
+  });
 
+  document.getElementById('loading').style.display='none';
+  document.getElementById('board').style.display='block';
 
-    document.getElementById('loading').style.display='none';
-    document.getElementById('board').style.display='block';
-    document.getElementById('last-update').textContent=`Actualizado: ${new Date().toLocaleTimeString('es-CL')}`;
-    renderBoard();
-  } catch(e){
-    document.getElementById('loading').innerHTML=`<div class="board-empty"><div class="ico">⚠️</div>Error cargando datos</div>`;
+  const ts = new Date().toLocaleTimeString('es-CL');
+  const upd = document.getElementById('last-update');
+  if (failed.length === queries.length) {
+    upd.innerHTML = `<span style="color:var(--orange)">⚠️ Sin conexión · ${ts}</span>`;
+  } else if (failed.length > 0) {
+    upd.innerHTML = `<span style="color:var(--orange)">⚠️ ${failed.join(', ')} no disponible</span> · ${ts}`;
+  } else {
+    upd.textContent = `Actualizado: ${ts}`;
   }
+
+  renderBoard();
 }
 
 // ── TABS ──
