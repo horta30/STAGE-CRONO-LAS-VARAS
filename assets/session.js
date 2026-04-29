@@ -5,6 +5,7 @@
 
 const SUPA_URL = 'https://sgmzacwxfuznolthyjff.supabase.co';
 const SUPA_KEY = 'sb_publishable_-wDAA3WMgcrJSGA9B4Gciw_wOuM27pw';
+const EVENTO   = 'las_varas';
 
 const GravitasSession = {
   KEY: 'stageCrono_session',
