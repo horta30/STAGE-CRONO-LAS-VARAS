@@ -104,6 +104,8 @@ canvas#bg-canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.2;poi
 .camp-icon{font-size:26px;flex-shrink:0;}
 .camp-info{flex:1;}
 .camp-title{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--yellow);letter-spacing:.06em;}
+.camp-position{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--yellow);letter-spacing:.18em;opacity:.8;margin-top:2px;display:none;}
+.camp-position.show{display:block;}
 .camp-sub{font-size:11px;color:var(--grey);margin-top:2px;line-height:1.5;}
 .camp-time{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--yellow);margin-top:2px;}
 .camp-btn{background:transparent;border:1px solid rgba(255,214,0,.4);color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.1em;padding:8px 12px;cursor:pointer;flex-shrink:0;border-radius:2px;}
@@ -206,6 +208,7 @@ footer{text-align:center;padding:20px;font-size:10px;color:var(--grey);letter-sp
   <div class="camp-icon">🏆</div>
   <div class="camp-info">
     <div class="camp-title">Ranking</div>
+    <div class="camp-position" id="camp-position"></div>
     <div class="camp-sub" id="camp-sub">Completa los dos stages. Tu tiempo total entra al ranking.</div>
     <div class="camp-time" id="camp-time" style="display:none"></div>
   </div>
@@ -317,7 +320,7 @@ function actualizarUI() {
   }
 
   // Fetch mejores remotos si hay nombre
-  if (nombre) fetchRemoteBests();
+  if (nombre) { fetchRemoteBests(); fetchPosicion(); }
 }
 
 // ── FETCH SUPABASE BESTS ──
@@ -336,6 +339,29 @@ async function fetchRemoteBests() {
         el.className = d.stage === 1 ? 'stage-status done' : 'stage-status done-s2';
       }
     });
+  } catch (e) {}
+}
+
+// ── FETCH POSICIÓN EN RANKING ──
+async function fetchPosicion() {
+  if (!nombre) return;
+  if (!GravitasSession.getTotal()) return; // solo si tiene S1+S2
+  const pin = GravitasSession.pin(nombre);
+  const el = document.getElementById('camp-position');
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/campeonato?evento=eq.${EVENTO}&order=tiempo_total.asc`, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    });
+    if (!r.ok) return;
+    const data = await r.json();
+    const idx = data.findIndex(d => d.nombre === nombre && String(d.pin) === pin);
+    if (idx >= 0) {
+      el.textContent = `POSICIÓN #${idx + 1} DE ${data.length}`;
+      el.classList.add('show');
+    } else {
+      el.textContent = 'TIEMPO PENDIENTE DE SYNC';
+      el.classList.add('show');
+    }
   } catch (e) {}
 }
 
