@@ -593,6 +593,7 @@ async function guardarResultado(totalMs, splits) {
   const pin = _nombre ? GravitasSession.pin(_nombre) : '0000';
   const payload = {
     session_id: SESSION_ID,
+    evento: EVENTO,
     nombre: _nombre || 'Anónimo',
     pin,
     stage: CT.meta.stage,
