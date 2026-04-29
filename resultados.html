@@ -136,6 +136,7 @@ body{min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:40px;}
 <script>
 const SUPA_URL = 'https://sgmzacwxfuznolthyjff.supabase.co';
 const SUPA_KEY = 'sb_publishable_-wDAA3WMgcrJSGA9B4Gciw_wOuM27pw';
+const EVENTO   = 'las_varas';
 
 let currentTab = 'camp';
 let allData = { camp: [], s1: [], s2: [] };
@@ -156,19 +157,19 @@ function fmtDate(iso){
 async function fetchData(){
   try{
     // Campeonato
-    const rCamp = await fetch(`${SUPA_URL}/rest/v1/campeonato?order=tiempo_total.asc`,{
+    const rCamp = await fetch(`${SUPA_URL}/rest/v1/campeonato?evento=eq.${EVENTO}&order=tiempo_total.asc`,{
       headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
     });
     allData.camp = await rCamp.json();
 
     // Stage 1
-    const rS1 = await fetch(`${SUPA_URL}/rest/v1/mejores_tiempos?stage=eq.1&order=tiempo_ms.asc`,{
+    const rS1 = await fetch(`${SUPA_URL}/rest/v1/mejores_tiempos?evento=eq.${EVENTO}&stage=eq.1&order=tiempo_ms.asc`,{
       headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
     });
     allData.s1 = await rS1.json();
 
     // Stage 2
-    const rS2 = await fetch(`${SUPA_URL}/rest/v1/mejores_tiempos?stage=eq.2&order=tiempo_ms.asc`,{
+    const rS2 = await fetch(`${SUPA_URL}/rest/v1/mejores_tiempos?evento=eq.${EVENTO}&stage=eq.2&order=tiempo_ms.asc`,{
       headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`}
     });
     allData.s2 = await rS2.json();
