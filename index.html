@@ -325,7 +325,7 @@ async function fetchRemoteBests() {
   if (!nombre) return;
   const pin = GravitasSession.pin(nombre);
   try {
-    const r = await fetch(`${SUPA_URL}/rest/v1/mejores_tiempos?nombre=eq.${encodeURIComponent(nombre)}&pin=eq.${pin}`, {
+    const r = await fetch(`${SUPA_URL}/rest/v1/mejores_tiempos?evento=eq.${EVENTO}&nombre=eq.${encodeURIComponent(nombre)}&pin=eq.${pin}`, {
       headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
     });
     const data = await r.json();
